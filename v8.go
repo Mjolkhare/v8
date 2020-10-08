@@ -14,8 +14,8 @@ package v8
 // #include <stdlib.h>
 // #include <string.h>
 // #include "v8_c_bridge.h"
-// #cgo CXXFLAGS: -I${SRCDIR} -I${SRCDIR}/include -fno-rtti -fpic -std=c++11
-// #cgo LDFLAGS: -pthread -L${SRCDIR}/libv8 -lv8_base -lv8_init -lv8_initializers -lv8_libbase -lv8_libplatform -lv8_libsampler -lv8_nosnapshot
+// #cgo CXXFLAGS: -I${SRCDIR} -I${SRCDIR}/include -fno-rtti -fpic -std=gnu++14
+// #cgo LDFLAGS: -pthread -L${SRCDIR}/libv8 -static-libstdc++ -lv8_base -lv8_init -lv8_initializers -lv8_libbase -lv8_libplatform -lv8_libsampler -lv8_nosnapshot
 import "C"
 
 import (
@@ -216,6 +216,8 @@ type Context struct {
 
 	callbacks      map[int]callbackInfo
 	nextCallbackId int
+	// temporary storage for callback results
+	cbGuard []*Value
 }
 type callbackInfo struct {
 	Callback
@@ -440,9 +442,20 @@ func (v *Value) Call(this *Value, args ...*Value) (*Value, error) {
 	if this != nil {
 		thisPtr = this.ptr
 	}
+
+	// init guard, i will check that it is not nill in callback
+	v.ctx.cbGuard = make([]*Value, 0)
+
 	addRef(v.ctx)
 	result := C.v8_Value_Call(v.ctx.ptr, v.ptr, thisPtr, C.int(len(args)), &argPtrs[0])
 	decRef(v.ctx)
+
+	// i want to clear it by myself for reduce memory usage
+	for _, v := range v.ctx.cbGuard {
+		v.release()
+	}
+	v.ctx.cbGuard = nil
+
 	return v.ctx.split(result)
 }
 
@@ -450,6 +463,19 @@ func (v *Value) Call(this *Value, args ...*Value) (*Value, error) {
 // The kind of a value is set when the value is created and will not change.
 func (v *Value) IsKind(k Kind) bool {
 	return v.kindMask.Is(k)
+}
+
+// GetPropertyNames return array of propery names. If the underlying value is not an
+// Object, this will return an error.
+func (v *Value) GetPropertyNames() (*Value, error) {
+	result := C.v8_Value_GetPropertyNames(v.ctx.ptr, v.ptr)
+	return v.ctx.split(result)
+}
+
+// Length returns array length. If the underlying value is not an array,
+// function will return zero length.
+func (v *Value) Length() int {
+	return int(C.v8_Array_Length(v.ctx.ptr, v.ptr))
 }
 
 // New creates a new instance of an object using this value as its constructor.
@@ -464,6 +490,11 @@ func (v *Value) New(args ...*Value) (*Value, error) {
 	result := C.v8_Value_New(v.ctx.ptr, v.ptr, C.int(len(args)), &argPtrs[0])
 	decRef(v.ctx)
 	return v.ctx.split(result)
+}
+
+// Release i want to clear memory by myself (i know what i do)
+func (v *Value) Release() {
+	v.release()
 }
 
 func (v *Value) release() {
@@ -606,6 +637,11 @@ func go_callback_handler(
 
 	res, err := info.Callback(CallbackArgs{caller_loc, args, ctx})
 
+	// i want to clear it by myself for reduce memory usage
+	for i := 0; i < int(argc); i++ {
+		args[i].release()
+	}
+
 	if err != nil {
 		errmsg := err.Error()
 		e := C.Error{ptr: C.CString(errmsg), len: C.int(len(errmsg))}
@@ -618,6 +654,11 @@ func go_callback_handler(
 		errmsg := fmt.Sprintf("Callback %s returned a value from another isolate.", info.name)
 		e := C.Error{ptr: C.CString(errmsg), len: C.int(len(errmsg))}
 		return C.ValueTuple{nil, 0, e}
+	}
+
+	// store result to temporary storage, for manual clearing
+	if ctx.cbGuard != nil {
+		ctx.cbGuard = append(ctx.cbGuard, res)
 	}
 
 	return C.ValueTuple{Value: res.ptr}

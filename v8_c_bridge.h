@@ -177,6 +177,9 @@ extern ByteArray v8_Value_Bytes(ContextPtr ctx, PersistentValuePtr value);
 extern ValueTuple v8_Value_PromiseInfo(ContextPtr ctx, PersistentValuePtr value,
                                        int* promise_state);
 
+extern ValueTuple v8_Value_GetPropertyNames(ContextPtr ctxptr, PersistentValuePtr valueptr);
+extern uint32_t v8_Array_Length(ContextPtr ctxptr, PersistentValuePtr valueptr);
+
 #ifdef __cplusplus
 }
 #endif

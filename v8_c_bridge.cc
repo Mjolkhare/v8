@@ -191,6 +191,9 @@ IsolatePtr v8_Isolate_New(StartupData startup_data) {
     data->raw_size = startup_data.len;
     create_params.snapshot_blob = data;
   }
+  //create_params.constraints = v8::ResourceConstraints();
+  //create_params.constraints.set_max_old_space_size(200);
+
   return static_cast<IsolatePtr>(v8::Isolate::New(create_params));
 }
 ContextPtr v8_Isolate_NewContext(IsolatePtr isolate_ptr) {
@@ -664,6 +667,33 @@ ValueTuple v8_Value_PromiseInfo(ContextPtr ctxptr, PersistentValuePtr valueptr,
   }
   v8::Local<v8::Value> res = prom->Result();
   return (ValueTuple){new Value(isolate, res), v8_Value_KindsFromLocal(res), nullptr};
+}
+
+ValueTuple v8_Value_GetPropertyNames(ContextPtr ctxptr, PersistentValuePtr valueptr) {
+  VALUE_SCOPE(ctxptr);
+
+  v8::Local<v8::Value> value = static_cast<Value*>(valueptr)->Get(isolate);
+
+  if (!value->IsObject()) {
+    return (ValueTuple){nullptr, 0, DupString("Not an object")};
+  }
+
+  v8::Local<v8::Object> object = value->ToObject(ctx).ToLocalChecked();
+  v8::Local<v8::Array> names = object->GetOwnPropertyNames(ctx).ToLocalChecked();
+
+  return (ValueTuple){new Value(isolate, names), v8_Value_KindsFromLocal(names), nullptr};
+}
+
+uint32_t v8_Array_Length(ContextPtr ctxptr, PersistentValuePtr valueptr) {
+  VALUE_SCOPE(ctxptr);
+
+  v8::Local<v8::Value> value = static_cast<Value*>(valueptr)->Get(isolate);
+
+  if (!value->IsArray()) {
+    return 0;
+  }
+
+	return v8::Local<v8::Array>::Cast(value)->Length();
 }
 
 } // extern "C"
