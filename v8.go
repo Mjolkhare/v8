@@ -190,6 +190,12 @@ func (i *Isolate) NewContext() *Context {
 // Contexts that are executing.  This may be called from any goroutine at any
 // time.
 func (i *Isolate) Terminate() { C.v8_Isolate_Terminate(i.ptr) }
+
+// Release i want to clear memory by myself (i know what i do)
+func (i *Isolate) Release() {
+	i.release()
+}
+
 func (i *Isolate) release() {
 	C.v8_Isolate_Release(i.ptr)
 	i.ptr = nil
@@ -278,6 +284,12 @@ func (ctx *Context) Bind(name string, cb Callback) *Value {
 func (ctx *Context) Global() *Value {
 	return ctx.newValue(C.v8_Context_Global(ctx.ptr), C.KindMask(KindObject))
 }
+
+// Release i want to clear memory by myself (i know what i do)
+func (ctx *Context) Release() {
+	ctx.release()
+}
+
 func (ctx *Context) release() {
 	if ctx.ptr != nil {
 		C.v8_Context_Release(ctx.ptr)
