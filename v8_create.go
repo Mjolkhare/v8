@@ -126,7 +126,16 @@ func (ctx *Context) createWithTags(val reflect.Value, tags []string) (v *Value, 
 		str := C.ByteArray{ptr: C.CString(gostr), len: C.int(len(gostr))}
 		defer C.free(unsafe.Pointer(str.ptr))
 		return ctx.createVal(C.ImmediateValue{Type: C.tSTRING, Mem: str}, unionKindString), true, nil
-	case reflect.UnsafePointer, reflect.Uintptr:
+	case reflect.UnsafePointer:
+		ptr := (*C.char)(val.Interface().(unsafe.Pointer))
+		return ctx.createVal(
+			C.ImmediateValue{
+				Type: C.tEXTERNAL,
+				Mem:  C.ByteArray{ptr: ptr},
+			},
+			mask(KindExternal),
+		), true, nil
+	case reflect.Uintptr:
 		return nil, false, fmt.Errorf("Uintptr not supported: %#v", val.Interface())
 	case reflect.Complex64, reflect.Complex128:
 		return nil, false, fmt.Errorf("Complex not supported: %#v", val.Interface())

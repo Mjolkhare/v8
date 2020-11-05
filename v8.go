@@ -387,6 +387,13 @@ func (v *Value) Date() (time.Time, error) {
 	return time.Unix(sec, nsec), nil
 }
 
+func (v *Value) ToExternal() (unsafe.Pointer, error) {
+	//if !v.IsKind(KindExternal) {
+	//	return errors.New("Not an external")
+	//}
+	return C.v8_External_Value(v.ctx.ptr, v.ptr), nil
+}
+
 // PromiseInfo will return information about the promise if this value's
 // underlying kind is KindPromise, otherwise it will return an error. If there
 // is no error, then the returned value will depend on the promise state:

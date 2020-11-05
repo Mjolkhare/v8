@@ -139,12 +139,14 @@ typedef enum {
     tARRAYBUFFER,
     tUNDEFINED,
     tDATE, // uses Float64 for msec since Unix epoch
+    tEXTERNAL,
 } ImmediateValueType;
 
 typedef struct {
     ImmediateValueType Type;
     // Mem is used for String, ArrayBuffer, or Array. For Array, only len is
     // used -- ptr is ignored.
+    // Mem.ptr is also used for external.
     ByteArray Mem;
     int Bool;
     double Float64;
@@ -179,6 +181,8 @@ extern ValueTuple v8_Value_PromiseInfo(ContextPtr ctx, PersistentValuePtr value,
 
 extern ValueTuple v8_Value_GetPropertyNames(ContextPtr ctxptr, PersistentValuePtr valueptr);
 extern uint32_t v8_Array_Length(ContextPtr ctxptr, PersistentValuePtr valueptr);
+
+extern void* v8_External_Value(ContextPtr ctxptr, PersistentValuePtr valueptr);
 
 #ifdef __cplusplus
 }

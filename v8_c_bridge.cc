@@ -356,6 +356,7 @@ PersistentValuePtr v8_Context_Create(ContextPtr ctxptr, ImmediateValue val) {
       break;
     }
     case tUNDEFINED:   return new Value(isolate, v8::Undefined(isolate)); break;
+    case tEXTERNAL:    return new Value(isolate, v8::External::New(isolate, (void *)val.Mem.ptr)); break;
   }
   return nullptr;
 }
@@ -694,6 +695,14 @@ uint32_t v8_Array_Length(ContextPtr ctxptr, PersistentValuePtr valueptr) {
   }
 
 	return v8::Local<v8::Array>::Cast(value)->Length();
+}
+
+void* v8_External_Value(ContextPtr ctxptr, PersistentValuePtr valueptr) {
+  VALUE_SCOPE(ctxptr);
+
+  v8::Local<v8::Value> value = static_cast<Value*>(valueptr)->Get(isolate);
+
+  return v8::Local<v8::External>::Cast(value)->Value();
 }
 
 } // extern "C"
