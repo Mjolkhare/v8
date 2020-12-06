@@ -7,11 +7,11 @@
 #   docker build --build-arg V8_VERSION=6.7.77 --tag augustoroman/v8-lib:6.7.77 .
 #
 
-FROM ubuntu:16.04 as builder
+FROM ubuntu:18.04 as builder
 # Install the basics we need to compile and install stuff.
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
-            ca-certificates build-essential pkg-config git curl python \
+            ca-certificates build-essential pkg-config git curl python libxml2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Download the depot_tools and the basic v8 code.

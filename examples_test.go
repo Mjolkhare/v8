@@ -3,7 +3,7 @@ package v8_test
 import (
 	"fmt"
 
-	"github.com/augustoroman/v8"
+	v8 "github.com/mjolkhare/v8"
 )
 
 func Example() {
@@ -165,39 +165,39 @@ func ExampleContext_Create_callbacks() {
 	// ids.next() = 1
 }
 
-func ExampleSnapshot() {
-	snapshot := v8.CreateSnapshot(`
-        // Concantenate all the scripts you want at startup, e.g. lodash, etc.
-        _ = { map: function() { /* ... */ }, etc: "etc, etc..." };
-        // Setup my per-context global state:
-        myGlobalState = {
-            init: function() { this.initialized = true; },
-            foo: 3,
-        };
-        // Run some functions:
-        myGlobalState.init();
-    `)
-	iso := v8.NewIsolateWithSnapshot(snapshot)
-
-	// Create a context with the state from the snapshot:
-	ctx1 := iso.NewContext()
-	fmt.Println("Context 1:")
-	val, _ := ctx1.Eval("myGlobalState.foo = 37; myGlobalState.initialized", "")
-	fmt.Println("myGlobalState.initialized:", val)
-	val, _ = ctx1.Eval("myGlobalState.foo", "")
-	fmt.Println("myGlobalState.foo:", val)
-
-	// In the second context, the global state is reset to the state at the
-	// snapshot:
-	ctx2 := iso.NewContext()
-	fmt.Println("Context 2:")
-	val, _ = ctx2.Eval("myGlobalState.foo", "")
-	fmt.Println("myGlobalState.foo:", val)
-
-	// Output:
-	// Context 1:
-	// myGlobalState.initialized: true
-	// myGlobalState.foo: 37
-	// Context 2:
-	// myGlobalState.foo: 3
-}
+//func ExampleSnapshot() {
+//	snapshot := v8.CreateSnapshot(`
+//        // Concantenate all the scripts you want at startup, e.g. lodash, etc.
+//        _ = { map: function() { /* ... */ }, etc: "etc, etc..." };
+//        // Setup my per-context global state:
+//        myGlobalState = {
+//            init: function() { this.initialized = true; },
+//            foo: 3,
+//        };
+//        // Run some functions:
+//        myGlobalState.init();
+//    `)
+//	iso := v8.NewIsolateWithSnapshot(snapshot)
+//
+//	// Create a context with the state from the snapshot:
+//	ctx1 := iso.NewContext()
+//	fmt.Println("Context 1:")
+//	val, _ := ctx1.Eval("myGlobalState.foo = 37; myGlobalState.initialized", "")
+//	fmt.Println("myGlobalState.initialized:", val)
+//	val, _ = ctx1.Eval("myGlobalState.foo", "")
+//	fmt.Println("myGlobalState.foo:", val)
+//
+//	// In the second context, the global state is reset to the state at the
+//	// snapshot:
+//	ctx2 := iso.NewContext()
+//	fmt.Println("Context 2:")
+//	val, _ = ctx2.Eval("myGlobalState.foo", "")
+//	fmt.Println("myGlobalState.foo:", val)
+//
+//	// Output:
+//	// Context 1:
+//	// myGlobalState.initialized: true
+//	// myGlobalState.foo: 37
+//	// Context 2:
+//	// myGlobalState.foo: 3
+//}

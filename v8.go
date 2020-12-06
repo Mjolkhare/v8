@@ -14,8 +14,8 @@ package v8
 // #include <stdlib.h>
 // #include <string.h>
 // #include "v8_c_bridge.h"
-// #cgo CXXFLAGS: -I${SRCDIR} -I${SRCDIR}/include -fno-rtti -fpic -std=gnu++14
-// #cgo LDFLAGS: -pthread -L${SRCDIR}/libv8 -static-libstdc++ -lv8_base -lv8_init -lv8_initializers -lv8_libbase -lv8_libplatform -lv8_libsampler -lv8_nosnapshot
+// #cgo CXXFLAGS: -I${SRCDIR} -I${SRCDIR}/include -fno-rtti -fpic -std=gnu++14 -DV8_COMPRESS_POINTERS -DV8_REVERSE_JSARGS
+// #cgo LDFLAGS: -pthread -L${SRCDIR}/libv8 -static-libstdc++ -lv8_monolith
 import "C"
 
 import (
@@ -99,56 +99,56 @@ var v8_init_once sync.Once
 
 // Snapshot contains the stored VM state that can be used to quickly recreate a
 // new VM at that particular state.
-type Snapshot struct{ data C.StartupData }
+//type Snapshot struct{ data C.StartupData }
+//
+//func newSnapshot(data C.StartupData) *Snapshot {
+//	s := &Snapshot{data}
+//	runtime.SetFinalizer(s, (*Snapshot).release)
+//	return s
+//}
 
-func newSnapshot(data C.StartupData) *Snapshot {
-	s := &Snapshot{data}
-	runtime.SetFinalizer(s, (*Snapshot).release)
-	return s
-}
-
-func (s *Snapshot) release() {
-	if s.data.ptr != nil {
-		C.free(unsafe.Pointer(s.data.ptr))
-	}
-	s.data.ptr = nil
-	s.data.len = 0
-	runtime.SetFinalizer(s, nil)
-}
+//func (s *Snapshot) release() {
+//	if s.data.ptr != nil {
+//		C.free(unsafe.Pointer(s.data.ptr))
+//	}
+//	s.data.ptr = nil
+//	s.data.len = 0
+//	runtime.SetFinalizer(s, nil)
+//}
 
 // Export returns the VM state data as a byte slice.
-func (s *Snapshot) Export() []byte {
-	return []byte(C.GoStringN(s.data.ptr, s.data.len))
-}
+//func (s *Snapshot) Export() []byte {
+//	return []byte(C.GoStringN(s.data.ptr, s.data.len))
+//}
 
 // RestoreSnapshotFromExport creates a Snapshot from a byte slice that should
 // have previous come from Snapshot.Export().
-func RestoreSnapshotFromExport(data []byte) *Snapshot {
-	str := C.String{
-		ptr: (*C.char)(C.malloc(C.size_t(len(data)))),
-		len: C.int(len(data)),
-	}
-	C.memcpy(unsafe.Pointer(str.ptr), unsafe.Pointer(&data[0]), C.size_t(len(data)))
-	return newSnapshot(str)
-}
+//func RestoreSnapshotFromExport(data []byte) *Snapshot {
+//	str := C.String{
+//		ptr: (*C.char)(C.malloc(C.size_t(len(data)))),
+//		len: C.int(len(data)),
+//	}
+//	C.memcpy(unsafe.Pointer(str.ptr), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+//	return newSnapshot(str)
+//}
 
 // CreateSnapshot creates a new Snapshot after running the supplied JS code.
 // Because Snapshots cannot have refences to external code (no Go callbacks),
 // all of the initialization code must be pure JS and supplied at once as the
 // arg to this function.
-func CreateSnapshot(js string) *Snapshot {
-	v8_init_once.Do(func() { C.v8_init() })
-	js_ptr := C.CString(js)
-	defer C.free(unsafe.Pointer(js_ptr))
-	return newSnapshot(C.v8_CreateSnapshotDataBlob(js_ptr))
-}
+//func CreateSnapshot(js string) *Snapshot {
+//	v8_init_once.Do(func() { C.v8_init() })
+//	js_ptr := C.CString(js)
+//	defer C.free(unsafe.Pointer(js_ptr))
+//	return newSnapshot(C.v8_CreateSnapshotDataBlob(js_ptr))
+//}
 
 // Isolate represents a single-threaded V8 engine instance.  It can run multiple
 // independent Contexts and V8 values can be freely shared between the Contexts,
 // however only one context will ever execute at a time.
 type Isolate struct {
 	ptr C.IsolatePtr
-	s   *Snapshot // make sure not to be advanced GC
+	//s   *Snapshot // make sure not to be advanced GC
 }
 
 // NewIsolate creates a new V8 Isolate.
@@ -161,12 +161,12 @@ func NewIsolate() *Isolate {
 
 // NewIsolateWithSnapshot creates a new V8 Isolate using the supplied Snapshot
 // to initialize all Contexts created from this Isolate.
-func NewIsolateWithSnapshot(s *Snapshot) *Isolate {
-	v8_init_once.Do(func() { C.v8_init() })
-	iso := &Isolate{ptr: C.v8_Isolate_New(s.data), s: s}
-	runtime.SetFinalizer(iso, (*Isolate).release)
-	return iso
-}
+//func NewIsolateWithSnapshot(s *Snapshot) *Isolate {
+//	v8_init_once.Do(func() { C.v8_init() })
+//	iso := &Isolate{ptr: C.v8_Isolate_New(s.data), s: s}
+//	runtime.SetFinalizer(iso, (*Isolate).release)
+//	return iso
+//}
 
 // NewContext creates a new, clean V8 Context within this Isolate.
 func (i *Isolate) NewContext() *Context {
@@ -649,7 +649,7 @@ func go_callback_handler(
 
 	res, err := info.Callback(CallbackArgs{caller_loc, args, ctx})
 
-	// i want to clear it by myself for reduce memory usage
+	// i want to clear it by myself for reduce memory usage (breaks bind test)
 	for i := 0; i < int(argc); i++ {
 		args[i].release()
 	}

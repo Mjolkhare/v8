@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/augustoroman/v8"
+	v8 "github.com/mjolkhare/v8"
 )
 
 const (

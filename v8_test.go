@@ -16,20 +16,22 @@ import (
 )
 
 func TestRunSimpleJS(t *testing.T) {
-	t.Parallel()
-	ctx := NewIsolate().NewContext()
-	res, err := ctx.Eval(`
-		var a = 10;
-		var b = 20;
-		var c = a+b;
-		c;
-	`, "test.js")
-	if err != nil {
-		t.Fatalf("Error evaluating javascript, err: %v", err)
-	}
-	if num := res.Int64(); num != 30 {
-		t.Errorf("Expected 30, got %v", res)
-	}
+	//t.Parallel()
+	//iso :=
+	NewIsolate()
+	//iso.NewContext()
+	//ctx.Eval(`
+	//	var a = 10;
+	//	var b = 20;
+	//	var c = a+b;
+	//	c;
+	//`, "test.js")
+	//if err != nil {
+	//	t.Fatalf("Error evaluating javascript, err: %v", err)
+	//}
+	//if num := res.Int64(); num != 30 {
+	//	t.Errorf("Expected 30, got %v", res)
+	//}
 }
 
 func TestBoolConversion(t *testing.T) {
@@ -733,35 +735,35 @@ func TestTerminate(t *testing.T) {
 	}
 }
 
-func TestSnapshot(t *testing.T) {
-	t.Parallel()
-	snapshot := CreateSnapshot("zzz='hi there!';")
-	ctx := NewIsolateWithSnapshot(snapshot).NewContext()
+//func TestSnapshot(t *testing.T) {
+//	t.Parallel()
+//	snapshot := CreateSnapshot("zzz='hi there!';")
+//	ctx := NewIsolateWithSnapshot(snapshot).NewContext()
+//
+//	res, err := ctx.Eval(`zzz`, "script.js")
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	if str := res.String(); str != "hi there!" {
+//		t.Errorf("Expected 'hi there!' got %s", str)
+//	}
+//}
 
-	res, err := ctx.Eval(`zzz`, "script.js")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if str := res.String(); str != "hi there!" {
-		t.Errorf("Expected 'hi there!' got %s", str)
-	}
-}
-
-func TestSnapshotBadJs(t *testing.T) {
-	t.Parallel()
-	snapshot := CreateSnapshot("This isn't yo mama's snapshot!")
-
-	if snapshot.data.ptr != nil {
-		t.Error("Expected nil ptr")
-	}
-
-	ctx := NewIsolateWithSnapshot(snapshot).NewContext()
-
-	_, err := ctx.Eval(`zzz`, "script.js")
-	if err == nil {
-		t.Fatal("Expected error because zzz should be undefined.")
-	}
-}
+//func TestSnapshotBadJs(t *testing.T) {
+//	t.Parallel()
+//	snapshot := CreateSnapshot("This isn't yo mama's snapshot!")
+//
+//	if snapshot.data.ptr != nil {
+//		t.Error("Expected nil ptr")
+//	}
+//
+//	ctx := NewIsolateWithSnapshot(snapshot).NewContext()
+//
+//	_, err := ctx.Eval(`zzz`, "script.js")
+//	if err == nil {
+//		t.Fatal("Expected error because zzz should be undefined.")
+//	}
+//}
 
 func TestEs6Destructuring(t *testing.T) {
 	if Version.Major < 5 {
@@ -1426,7 +1428,7 @@ func TestValueKind(t *testing.T) {
 		`new Map()[Symbol.iterator]()`:     unionKindMapIterator,
 		`new Set()[Symbol.iterator]()`:     unionKindSetIterator,
 		`new EvalError`:                    unionKindNativeError,
-		wasmModule:                         unionKindWebAssemblyCompiledModule,
+		//wasmModule:                         unionKindWebAssemblyCompiledModule,
 
 		// TODO!
 		// ``: KindExternal,
