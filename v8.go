@@ -712,3 +712,10 @@ func (i *Isolate) GetHeapStatistics() HeapStatistics {
 func (i *Isolate) SendLowMemoryNotification() {
 	C.v8_Isolate_LowMemoryNotification(i.ptr)
 }
+
+// IdleNotificationDeadline
+// Optional notification that the embedder is idle.
+// V8 uses the notification to perform garbage collection.
+func (i *Isolate) IdleNotificationDeadline(deadlineInSecond float64) bool {
+	return C.v8_Isolate_IdleNotificationDeadline(i.ptr, C.double(deadlineInSecond)) == 1
+}

@@ -653,6 +653,14 @@ void v8_Isolate_LowMemoryNotification(IsolatePtr isolate_ptr) {
   isolate->LowMemoryNotification();
 }
 
+int v8_Isolate_IdleNotificationDeadline(IsolatePtr isolate_ptr, double deadline_in_second) {
+  if (isolate_ptr == nullptr) {
+    return 1;
+  }
+  ISOLATE_SCOPE(static_cast<v8::Isolate*>(isolate_ptr));
+  return isolate->IdleNotificationDeadline(deadline_in_second);
+}
+
 ValueTuple v8_Value_PromiseInfo(ContextPtr ctxptr, PersistentValuePtr valueptr,
                                int* promise_state) {
   VALUE_SCOPE(ctxptr);
