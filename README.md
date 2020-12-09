@@ -65,7 +65,7 @@ docker cp v8:/v8/lib libv8/                           # Copy the library fiels.
 This takes a lot longer, but is still easy:
 
 ```bash
-export V8_VERSION=6.7.77
+export V8_VERSION=8.7.220.29
 docker build --build-arg V8_VERSION=$V8_VERSION --tag augustoroman/v8-lib:$V8_VERSION docker-v8-lib/
 ```
 

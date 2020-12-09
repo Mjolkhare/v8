@@ -121,6 +121,7 @@ extern void       v8_Isolate_Release(IsolatePtr isolate);
 
 extern HeapStatistics       v8_Isolate_GetHeapStatistics(IsolatePtr isolate);
 extern void                 v8_Isolate_LowMemoryNotification(IsolatePtr isolate);
+extern int                  v8_Isolate_IdleNotificationDeadline(IsolatePtr isolate_ptr, double deadline_in_second);
 
 extern ValueTuple     v8_Context_Run(ContextPtr ctx,
                                      const char* code, const char* filename);
